@@ -12,6 +12,7 @@ const mobileOpen = ref(false)
 const portfolioOpen = ref(false)
 const mobilePortfolioOpen = ref(false)
 const portfolioRef = ref<HTMLDivElement | null>(null)
+const mobilePortfolioRef = ref<HTMLDivElement | null>(null)
 
 const currentName = computed(() => String(route.name ?? ''))
 const portfolioActive = computed(() => isPortfolioPage(currentName.value))
@@ -46,6 +47,9 @@ function onKey(e: KeyboardEvent) {
 function onPointer(e: MouseEvent) {
   if (portfolioRef.value && !portfolioRef.value.contains(e.target as Node)) {
     portfolioOpen.value = false
+  }
+  if (mobilePortfolioRef.value && !mobilePortfolioRef.value.contains(e.target as Node)) {
+    mobilePortfolioOpen.value = false
   }
 }
 
@@ -225,7 +229,7 @@ onUnmounted(() => {
         </button>
 
         <!-- Portafolio accordion -->
-        <div>
+        <div ref="mobilePortfolioRef">
           <button
             type="button"
             :aria-expanded="mobilePortfolioOpen"
