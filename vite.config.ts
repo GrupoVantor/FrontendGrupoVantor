@@ -47,6 +47,7 @@ type FigmaSiteConfiguration = {
   language?: string
   robots?: {
     index?: boolean
+    follow?: boolean
   }
   icons?: {
     icon?: string
@@ -80,17 +81,24 @@ function figmaSiteConfiguration(config: FigmaSiteConfiguration): Plugin {
     return html.replace(`<!-- ${slotName} -->`, content)
   }
 
-  const title = config.title ?? "Figma Make App"
-  const description = config.description ?? ''
+  const title =
+    config.title ?? 'Grupo Vantor S.A.S. | Soluciones financieras, inmobiliarias, logísticas y corporativas'
+  const description =
+    config.description ??
+    'Grupo Vantor S.A.S. ofrece factoring, créditos con garantía hipotecaria y prendaria, soluciones inmobiliarias, logística de carga consolidada para mipymes y outsourcing contable, tributario y de nómina en Colombia.'
   const favicon = config.icons?.icon ?? ''
   const socialImage = config.openGraph?.image ?? ''
-  const language = sanitizeHtmlValue(config.language) || 'en'
+  const language = sanitizeHtmlValue(config.language) || 'es'
+  const robotsIndex = config.robots?.index !== false
+  const robotsFollow = config.robots?.follow ?? robotsIndex
+  const robotsContent = `${robotsIndex ? 'index' : 'noindex'}, ${robotsFollow ? 'follow' : 'nofollow'}`
   const googleAnalyticsId = sanitizeHtmlValue(config.analytics?.googleAnalyticsId)
   const headStart = config.customScripts?.headStart ?? ''
   const headEnd = config.customScripts?.headEnd ?? ''
   const bodyStart = config.customScripts?.bodyStart ?? ''
   const bodyEnd = config.customScripts?.bodyEnd ?? ''
-  const robotsTxt = config.robots?.index === false ? 'User-agent: *\nDisallow: /\n' : ''
+  // Always emitted: the Netlify SPA fallback would otherwise serve index.html at /robots.txt.
+  const robotsTxt = robotsIndex ? 'User-agent: *\nAllow: /\n' : 'User-agent: *\nDisallow: /\n'
 
   return {
     name: 'figma-site-configuration',
@@ -126,18 +134,26 @@ function figmaSiteConfiguration(config: FigmaSiteConfiguration): Plugin {
         if (description) {
           tags.push({ tag: 'meta', attrs: { name: 'description', content: description }, injectTo: 'head' })
         }
-        if (config.robots?.index === false) {
-          tags.push({ tag: 'meta', attrs: { name: 'robots', content: 'noindex, nofollow' }, injectTo: 'head' })
-        }
+        tags.push({ tag: 'meta', attrs: { name: 'robots', content: robotsContent }, injectTo: 'head' })
         if (favicon) {
           tags.push({ tag: 'link', attrs: { rel: 'icon', href: favicon }, injectTo: 'head' })
         }
         if (title) {
-          tags.push({ tag: 'meta', attrs: { property: 'og:title', content: title }, injectTo: 'head' })
+          tags.push(
+            { tag: 'meta', attrs: { property: 'og:title', content: title }, injectTo: 'head' },
+            { tag: 'meta', attrs: { name: 'twitter:title', content: title }, injectTo: 'head' },
+          )
         }
         if (description) {
-          tags.push({ tag: 'meta', attrs: { property: 'og:description', content: description }, injectTo: 'head' })
+          tags.push(
+            { tag: 'meta', attrs: { property: 'og:description', content: description }, injectTo: 'head' },
+            { tag: 'meta', attrs: { name: 'twitter:description', content: description }, injectTo: 'head' },
+          )
         }
+        tags.push(
+          { tag: 'meta', attrs: { property: 'og:type', content: 'website' }, injectTo: 'head' },
+          { tag: 'meta', attrs: { property: 'og:locale', content: language === 'es' ? 'es_CO' : language }, injectTo: 'head' },
+        )
         if (socialImage) {
           tags.push(
             { tag: 'meta', attrs: { property: 'og:image', content: socialImage }, injectTo: 'head' },

@@ -1,5 +1,5 @@
 /** Destinatario del formulario de contacto (Grupo Vantor). */
-export const CONTACT_EMAIL = 'contacto@grupovantor.com'
+export const CONTACT_EMAIL = 'contacto@grupovantor.co'
 
 /** Ruta SPA de la autorización / política de tratamiento de datos personales. */
 export const POLITICA_DATOS_ROUTE = 'politica-datos'

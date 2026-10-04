@@ -72,7 +72,7 @@ onUnmounted(() => {
   <div class="hidden md:block text-xs text-white/70 bg-[#081629] py-2">
     <div class="max-w-7xl mx-auto px-6 flex justify-between items-center">
       <span>Bogotá, Colombia &nbsp;|&nbsp; Lun - Vie: 8:00 a.m. - 5:00 p.m. Hora Colombia</span>
-      <span>contacto@grupovantor.com &nbsp;|&nbsp; +57 302 668 7703</span>
+      <span>contacto@grupovantor.co &nbsp;|&nbsp; +57 302 668 7703</span>
     </div>
   </div>
 
