@@ -62,7 +62,7 @@ function goPrivacy() {
           <h4 class="text-white text-xs font-bold tracking-widest uppercase mb-5">Contacto</h4>
           <div class="flex flex-col gap-3 text-sm text-white/55">
             <p>{{ officeLocation.address }}</p>
-            <a href="mailto:contacto@grupovantor.com" class="hover:text-[#D4AF5A] transition-colors">contacto@grupovantor.com</a>
+            <a href="mailto:contacto@grupovantor.co" class="hover:text-[#D4AF5A] transition-colors">contacto@grupovantor.co</a>
             <a href="tel:+573026687703" class="hover:text-[#D4AF5A] transition-colors">+573026687703</a>
             <p>Lun - Vie: 8:00 a.m. - 5:00 p.m. Hora Colombia</p>
           </div>
