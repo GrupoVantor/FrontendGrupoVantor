@@ -4,7 +4,7 @@ export const CONTACT_EMAIL = 'contacto@grupovantor.co'
 /** Ruta SPA de la autorización / política de tratamiento de datos personales. */
 export const POLITICA_DATOS_ROUTE = 'politica-datos'
 
-/** FormSubmit AJAX (sin API key). Primera vez: confirmar el correo en la bandeja del destinatario. */
+/** FormSubmit AJAX (sin API key). Primera vez: confirmar el correo en la bandeja del destinatario. Payload propio en `formSubmitPayload`. */
 export const DEFAULT_CONTACT_FORM_ENDPOINT = `https://formsubmit.co/ajax/${CONTACT_EMAIL}`
 
 export const serviceLabels: Record<string, string> = {
@@ -80,7 +80,58 @@ export function buildInquiryText(form: ContactInquiry): { subject: string; body:
   return { subject, body }
 }
 
-function inquiryPayload(form: ContactInquiry): Record<string, string> {
+const FORMSUBMIT_AUTORESPONSE =
+  'Gracias por contactar a Grupo Vantor S.A.S. Hemos recibido tu consulta y te responderemos pronto. Horario: Lun - Vie 8:00 a.m. - 5:00 p.m. Hora Colombia.'
+
+function isFormSubmitEndpoint(endpoint: string): boolean {
+  try {
+    return new URL(endpoint).hostname.endsWith('formsubmit.co')
+  } catch {
+    return false
+  }
+}
+
+function submittedAt(): string {
+  return new Intl.DateTimeFormat('es-CO', {
+    timeZone: 'America/Bogota',
+    dateStyle: 'long',
+    timeStyle: 'short',
+  }).format(new Date())
+}
+
+/**
+ * FormSubmit usa las claves como etiquetas del correo (orden = orden de inserción).
+ * Las claves con "_" son opciones ocultas. `email` debe llamarse así para que funcione `_autoresponse`.
+ */
+function formSubmitPayload(form: ContactInquiry): Record<string, string> {
+  const { subject } = buildInquiryText(form)
+  const payload: Record<string, string> = {
+    _subject: subject,
+    _template: 'table',
+    _captcha: 'false',
+    _replyto: form.email,
+    _autoresponse: FORMSUBMIT_AUTORESPONSE,
+    Nombre: form.nombre,
+    email: form.email,
+    Teléfono: form.telefono || 'No indicado',
+    Empresa: form.empresa || 'No indicada',
+    'Servicio de interés': serviceLabel(form.servicio),
+    Mensaje: form.mensaje,
+    'Autorización tratamiento de datos': form.autorizacionDatos
+      ? 'Sí, acepta (Ley 1581 de 2012)'
+      : 'No',
+    'Acepta comunicaciones comerciales': yesNo(form.aceptaComercial),
+    'Fecha de envío': submittedAt(),
+  }
+  if (typeof window !== 'undefined') {
+    payload['Página'] = `${window.location.origin}${window.location.pathname}`
+  }
+  return payload
+}
+
+function inquiryPayload(endpoint: string, form: ContactInquiry): Record<string, string> {
+  if (isFormSubmitEndpoint(endpoint)) return formSubmitPayload(form)
+
   const { subject, body } = buildInquiryText(form)
   const payload: Record<string, string> = {
     nombre: form.nombre,
@@ -142,7 +193,7 @@ function toUserFacingError(raw: string | undefined, fallback: string): string {
 }
 
 async function postInquiry(endpoint: string, form: ContactInquiry): Promise<void> {
-  const payload = inquiryPayload(form)
+  const payload = inquiryPayload(endpoint, form)
   const res = await fetch(endpoint, {
     method: 'POST',
     headers: {

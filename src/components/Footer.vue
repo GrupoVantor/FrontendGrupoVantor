@@ -1,23 +1,12 @@
 <script setup lang="ts">
-import { useRouter } from 'vue-router'
 import BrandLogo from './BrandLogo.vue'
 import { officeLocation } from '../config/officeLocation'
 import { portfolioLines } from '../data/portfolio'
 import { POLITICA_DATOS_ROUTE } from '../config/contact'
-
-const router = useRouter()
-
-function go(name: string) {
-  router.push({ name })
-}
-
-function goPrivacy() {
-  router.push({ name: POLITICA_DATOS_ROUTE })
-}
 </script>
 
 <template>
-  <footer class="bg-[#081629] text-white">
+  <footer class="bg-navy-dark text-white">
     <div class="max-w-7xl mx-auto px-6 py-16">
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
         <!-- Brand -->
@@ -34,15 +23,14 @@ function goPrivacy() {
         <div>
           <h4 class="text-white text-xs font-bold tracking-widest uppercase mb-5">Portafolio</h4>
           <nav class="flex flex-col gap-3">
-            <button
+            <RouterLink
               v-for="line in portfolioLines"
               :key="line.id"
-              type="button"
-              class="text-white/55 text-sm text-left hover:text-[#D4AF5A] transition-colors"
-              @click="go(line.page)"
+              :to="{ name: line.page }"
+              class="text-white/55 text-sm text-left hover:text-gold-light transition-colors"
             >
               {{ line.label }}
-            </button>
+            </RouterLink>
           </nav>
         </div>
 
@@ -50,10 +38,10 @@ function goPrivacy() {
         <div>
           <h4 class="text-white text-xs font-bold tracking-widest uppercase mb-5">Empresa</h4>
           <nav class="flex flex-col gap-3">
-            <button type="button" class="text-white/55 text-sm text-left hover:text-[#D4AF5A] transition-colors" @click="go('nosotros')">Quiénes Somos</button>
-            <button type="button" class="text-white/55 text-sm text-left hover:text-[#D4AF5A] transition-colors" @click="go('contacto')">Contacto</button>
-            <button type="button" class="text-white/55 text-sm text-left hover:text-[#D4AF5A] transition-colors">Trabaja con Nosotros</button>
-            <button type="button" class="text-white/55 text-sm text-left hover:text-[#D4AF5A] transition-colors" @click="goPrivacy">Política de Privacidad</button>
+            <RouterLink :to="{ name: 'nosotros' }" class="text-white/55 text-sm text-left hover:text-gold-light transition-colors">Quiénes Somos</RouterLink>
+            <RouterLink :to="{ name: 'contacto' }" class="text-white/55 text-sm text-left hover:text-gold-light transition-colors">Contacto</RouterLink>
+            <button type="button" class="text-white/55 text-sm text-left hover:text-gold-light transition-colors">Trabaja con Nosotros</button>
+            <RouterLink :to="{ name: POLITICA_DATOS_ROUTE }" class="text-white/55 text-sm text-left hover:text-gold-light transition-colors">Política de Privacidad</RouterLink>
           </nav>
         </div>
 
@@ -62,8 +50,8 @@ function goPrivacy() {
           <h4 class="text-white text-xs font-bold tracking-widest uppercase mb-5">Contacto</h4>
           <div class="flex flex-col gap-3 text-sm text-white/55">
             <p>{{ officeLocation.address }}</p>
-            <a href="mailto:contacto@grupovantor.co" class="hover:text-[#D4AF5A] transition-colors">contacto@grupovantor.co</a>
-            <a href="tel:+573026687703" class="hover:text-[#D4AF5A] transition-colors">+573026687703</a>
+            <a href="mailto:contacto@grupovantor.co" class="hover:text-gold-light transition-colors">contacto@grupovantor.co</a>
+            <a href="tel:+573026687703" class="hover:text-gold-light transition-colors">+573026687703</a>
             <p>Lun - Vie: 8:00 a.m. - 5:00 p.m. Hora Colombia</p>
           </div>
         </div>

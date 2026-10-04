@@ -19,7 +19,7 @@ const src = embedSrc()
 
 <template>
   <div>
-    <div class="rounded-lg overflow-hidden h-[240px] bg-[#0D1F3C] border border-[#E0E6EF] relative">
+    <div class="rounded-lg overflow-hidden h-60 bg-navy border border-border relative">
       <iframe
         v-if="src"
         :title="`Mapa — ${officeLocation.label}`"
@@ -38,7 +38,7 @@ const src = embedSrc()
           <circle cx="12" cy="10" r="3" stroke-linecap="round" stroke-linejoin="round" />
         </svg>
         <div class="text-white text-sm font-medium">{{ officeLocation.label }}</div>
-        <p class="text-white/40 text-xs max-w-[220px]">
+        <p class="text-white/40 text-xs max-w-55">
           Mapa no disponible. Configura VITE_GOOGLE_MAPS_API_KEY para ver la ubicación.
         </p>
       </div>
@@ -47,7 +47,7 @@ const src = embedSrc()
       :href="mapsOpenUrl()"
       target="_blank"
       rel="noopener noreferrer"
-      class="mt-3 inline-flex items-center gap-1.5 text-[#0D1F3C] text-sm font-medium hover:text-[#162D55] transition-colors"
+      class="mt-3 inline-flex items-center gap-1.5 text-navy text-sm font-medium hover:text-navy-mid transition-colors"
     >
       Abrir en Google Maps
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-3.5 h-3.5">
