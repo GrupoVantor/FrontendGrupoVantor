@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
+import HeroBackdrop from './HeroBackdrop.vue'
 import Reveal from './Reveal.vue'
 import type { PortfolioLine } from '../data/portfolio'
 
-const props = defineProps<{
+defineProps<{
   line: PortfolioLine
 }>()
 
 const router = useRouter()
-const patternId = `svc-grid-${props.line.id}`
 
 function hexWithAlpha(hex: string, alphaHex: string) {
   return `${hex}${alphaHex}`
@@ -21,22 +21,13 @@ function go(name: string) {
 
 <template>
   <div>
-    <section class="bg-[#0D1F3C] py-20 relative overflow-hidden">
-      <div class="absolute inset-0 opacity-8">
-        <svg width="100%" height="100%">
-          <defs>
-            <pattern :id="patternId" width="60" height="60" patternUnits="userSpaceOnUse">
-              <path d="M 60 0 L 0 0 0 60" fill="none" stroke="white" stroke-width="0.5" />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" :fill="`url(#${patternId})`" />
-        </svg>
-      </div>
-      <div class="relative max-w-7xl mx-auto px-6 hero-anim">
-        <nav class="text-white/40 text-xs mb-4 flex items-center gap-2" aria-label="Breadcrumb">
-          <button type="button" class="hover:text-white transition-colors" @click="go('inicio')">
+    <section class="bg-navy py-14 sm:py-20 relative overflow-hidden">
+      <HeroBackdrop />
+      <div class="relative max-w-7xl mx-auto px-6 hero-anim hero-anim--blur">
+        <nav class="hero-anim--slide text-white/40 text-xs mb-4 flex items-center gap-2" aria-label="Breadcrumb">
+          <RouterLink :to="{ name: 'inicio' }" class="hover:text-white transition-colors">
             Inicio
-          </button>
+          </RouterLink>
           <span>/</span>
           <span>Portafolio</span>
           <span>/</span>
@@ -63,9 +54,10 @@ function go(name: string) {
         <Reveal
           v-for="({ tag, title, desc, box, boxLabel }, i) in line.detailBlocks"
           :key="title"
-          :delay="i"
+          :variant="i % 2 === 0 ? 'fade-right' : 'fade-left'"
+          :delay="i === 0 ? 0 : 1"
         >
-          <article class="border border-[#E0E6EF] rounded-lg overflow-hidden">
+          <article class="border border-border rounded-lg overflow-hidden">
             <div class="p-8 md:grid md:grid-cols-2 gap-10">
               <div>
                 <span
@@ -78,21 +70,21 @@ function go(name: string) {
                   {{ tag }}
                 </span>
                 <h2
-                  class="text-xl font-bold text-[#0D1F3C] mb-3"
+                  class="text-xl font-bold text-navy mb-3"
                   style="font-family: Manrope, sans-serif"
                 >
                   {{ title }}
                 </h2>
-                <p class="text-[#6B7A90] text-sm leading-relaxed">{{ desc }}</p>
+                <p class="text-muted text-sm leading-relaxed">{{ desc }}</p>
               </div>
               <aside
-                class="mt-6 md:mt-0 bg-[#F4F6F9] rounded-lg p-6 border-l-4"
+                class="mt-6 md:mt-0 bg-surface rounded-lg p-6 border-l-4"
                 :style="{ borderLeftColor: line.accent }"
               >
-                <div class="text-xs font-bold text-[#0D1F3C] uppercase tracking-widest mb-3">
+                <div class="text-xs font-bold text-navy uppercase tracking-widest mb-3">
                   {{ boxLabel }}
                 </div>
-                <p class="text-[#3D4A5C] text-sm leading-relaxed">{{ box }}</p>
+                <p class="text-grafito text-sm leading-relaxed">{{ box }}</p>
               </aside>
             </div>
           </article>
@@ -100,8 +92,8 @@ function go(name: string) {
       </div>
     </section>
 
-    <section class="bg-[#0D1F3C] py-20 text-center">
-      <div class="max-w-2xl mx-auto px-6">
+    <section class="bg-navy py-20 text-center">
+      <Reveal variant="zoom-in" class="max-w-2xl mx-auto px-6">
         <h2 class="text-3xl font-bold text-white mb-4" style="font-family: Manrope, sans-serif">
           ¿Listo para avanzar con {{ line.label.toLowerCase() }}?
         </h2>
@@ -110,12 +102,12 @@ function go(name: string) {
         </p>
         <button
           type="button"
-          class="anim-btn bg-[#B8973A] hover:bg-[#D4AF5A] text-white font-semibold px-8 py-4 rounded transition-colors"
+          class="anim-btn bg-gold hover:bg-gold-light text-white font-semibold px-8 py-4 rounded transition-colors"
           @click="go('contacto')"
         >
           {{ line.ctaLabel }}
         </button>
-      </div>
+      </Reveal>
     </section>
   </div>
 </template>

@@ -1,5 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap');
 @import 'tailwindcss';
+@config '../tailwind.config.ts';
 
 @theme {
   --color-navy: #0D1F3C;
@@ -22,6 +23,8 @@
 
 html {
   scroll-behavior: smooth;
+  /* Clears the fixed header (collapsed: ~57px mobile, ~49px desktop). */
+  scroll-padding-top: 4.5rem;
 }
 
 body {
@@ -96,34 +99,226 @@ h1, h2, h3, h4, h5 {
   animation: page-enter 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-.reveal {
-  opacity: 0;
-  transform: translateY(18px);
-  transition:
-    opacity 0.65s cubic-bezier(0.22, 1, 0.36, 1),
-    transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
-  will-change: opacity, transform;
+/* Hero entrances (CSS-only, run on first paint; no JS needed).
+   Container `.hero-anim` staggers its direct children; modifiers swap the keyframes. */
+@keyframes hero-blur {
+  from {
+    opacity: 0;
+    filter: blur(8px);
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0);
+  }
 }
 
-.reveal--in {
-  opacity: 1;
-  transform: translateY(0);
+@keyframes hero-from-left {
+  from {
+    opacity: 0;
+    transform: translateX(-28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
-.hero-anim > *:nth-child(1) {
-  animation: hero-line 0.65s cubic-bezier(0.22, 1, 0.36, 1) 0.05s both;
+@keyframes hero-from-right {
+  from {
+    opacity: 0;
+    transform: translateX(28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
-.hero-anim > *:nth-child(2) {
-  animation: hero-line 0.65s cubic-bezier(0.22, 1, 0.36, 1) 0.15s both;
+
+@keyframes hero-zoom {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
-.hero-anim > *:nth-child(3) {
-  animation: hero-line 0.65s cubic-bezier(0.22, 1, 0.36, 1) 0.25s both;
+
+@keyframes hero-clip {
+  from {
+    opacity: 0;
+    clip-path: inset(0 0 100% 0);
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    clip-path: inset(0 0 0 0);
+    transform: translateY(0);
+  }
 }
-.hero-anim > *:nth-child(4) {
-  animation: hero-line 0.65s cubic-bezier(0.22, 1, 0.36, 1) 0.35s both;
+
+.hero-anim > * {
+  animation: var(--hero-anim, hero-line) var(--hero-duration, 0.65s) cubic-bezier(0.22, 1, 0.36, 1) both;
 }
+.hero-anim > *:nth-child(1) { animation-delay: 0.05s; }
+.hero-anim > *:nth-child(2) { animation-delay: 0.15s; }
+.hero-anim > *:nth-child(3) { animation-delay: 0.25s; }
+.hero-anim > *:nth-child(4) { animation-delay: 0.35s; }
+.hero-anim > *:nth-child(n + 5) { animation-delay: 0.45s; }
+
+.hero-anim--blur { --hero-anim: hero-blur; --hero-duration: 0.8s; }
+.hero-anim--slide { --hero-anim: hero-from-left; --hero-duration: 0.7s; }
+.hero-anim--zoom { --hero-anim: hero-zoom; --hero-duration: 0.75s; }
+.hero-anim--clip { --hero-anim: hero-clip; --hero-duration: 0.8s; }
+
+/* Single hero elements (panels, images, side columns). */
 .hero-anim-panel {
-  animation: fade-up 0.75s cubic-bezier(0.22, 1, 0.36, 1) 0.3s both;
+  animation: var(--hero-panel-anim, fade-up) var(--hero-panel-duration, 0.75s) cubic-bezier(0.22, 1, 0.36, 1)
+    var(--hero-panel-delay, 0.3s) both;
+}
+.hero-anim-panel--zoom { --hero-panel-anim: hero-zoom; --hero-panel-duration: 0.85s; }
+.hero-anim-panel--from-right { --hero-panel-anim: hero-from-right; }
+.hero-anim-panel--from-left { --hero-panel-anim: hero-from-left; }
+.hero-anim-panel--blur { --hero-panel-anim: hero-blur; }
+.hero-anim-panel--clip { --hero-panel-anim: hero-clip; --hero-panel-duration: 0.85s; }
+
+/* Navy hero backdrop (HeroBackdrop.vue): soft glows, masked dot texture, thin gold arcs, vignette.
+   Glows use plain gradients + transform drift — no filter/backdrop-filter. */
+.hero-backdrop {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background: linear-gradient(160deg, var(--color-navy) 0%, var(--color-navy) 55%, var(--color-navy-dark) 100%);
+}
+
+.hero-backdrop__glow {
+  position: absolute;
+  border-radius: 9999px;
+  will-change: transform;
+}
+.hero-backdrop__glow--navy {
+  width: 70vmax;
+  height: 70vmax;
+  top: -25vmax;
+  right: -20vmax;
+  background: radial-gradient(closest-side, rgb(46 82 145 / 0.45), rgb(22 45 85 / 0.3) 45%, transparent 100%);
+  animation:
+    hero-glow-in 1.4s cubic-bezier(0.22, 1, 0.36, 1) both,
+    hero-glow-drift 22s ease-in-out 1.4s infinite alternate;
+}
+.hero-backdrop__glow--gold {
+  width: 55vmax;
+  height: 55vmax;
+  bottom: -32vmax;
+  left: -18vmax;
+  background: radial-gradient(closest-side, rgb(212 175 90 / 0.22), rgb(184 151 58 / 0.08) 50%, transparent 100%);
+  animation:
+    hero-glow-in 1.6s cubic-bezier(0.22, 1, 0.36, 1) 0.2s both,
+    hero-glow-drift 28s ease-in-out 1.8s infinite alternate-reverse;
+}
+
+.hero-backdrop__pattern {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgb(255 255 255 / 0.22) 1px, transparent 1.4px);
+  background-size: 26px 26px;
+  -webkit-mask-image: radial-gradient(ellipse 60% 70% at 78% 40%, #000 0%, transparent 75%);
+  mask-image: radial-gradient(ellipse 60% 70% at 78% 40%, #000 0%, transparent 75%);
+  opacity: 0.5;
+  transform-origin: 78% 40%;
+  animation: hero-pattern-in 1.6s cubic-bezier(0.22, 1, 0.36, 1) 0.15s both;
+}
+
+.hero-backdrop__arcs {
+  position: absolute;
+  width: min(48rem, 90vw);
+  aspect-ratio: 1;
+  top: 50%;
+  right: max(-14rem, -20vw);
+  transform: translateY(-50%);
+  color: var(--color-gold-light);
+  opacity: 0.18;
+  -webkit-mask-image: linear-gradient(to left, #000 30%, transparent 85%);
+  mask-image: linear-gradient(to left, #000 30%, transparent 85%);
+}
+
+.hero-backdrop__arc {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+  animation: hero-arc-draw 1.8s cubic-bezier(0.65, 0, 0.35, 1) 0.25s both;
+}
+.hero-backdrop__arc--inner {
+  animation-delay: 0.5s;
+}
+.hero-backdrop__arc-spin {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation:
+    hero-arc-fade 1.2s ease-out 0.6s both,
+    hero-arc-spin 140s linear 0.6s infinite,
+    hero-arc-pulse 9s ease-in-out 1.8s infinite alternate;
+}
+
+.hero-backdrop__vignette {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to bottom, transparent 70%, rgb(8 22 41 / 0.55) 100%),
+    radial-gradient(ellipse 120% 90% at 50% 40%, transparent 55%, rgb(8 22 41 / 0.45) 100%);
+}
+
+.hero-backdrop--center .hero-backdrop__glow--navy {
+  top: -30vmax;
+  right: auto;
+  left: 50%;
+  margin-left: -35vmax;
+}
+.hero-backdrop--center .hero-backdrop__pattern {
+  -webkit-mask-image: radial-gradient(ellipse 55% 60% at 50% 35%, #000 0%, transparent 75%);
+  mask-image: radial-gradient(ellipse 55% 60% at 50% 35%, #000 0%, transparent 75%);
+}
+.hero-backdrop--center .hero-backdrop__arcs {
+  right: auto;
+  left: 50%;
+  top: 38%;
+  transform: translate(-50%, -50%);
+  -webkit-mask-image: radial-gradient(closest-side, #000 40%, transparent 100%);
+  mask-image: radial-gradient(closest-side, #000 40%, transparent 100%);
+}
+
+@media (max-width: 1023px) {
+  .hero-backdrop__arcs { opacity: 0.1; }
+  .hero-backdrop__pattern { opacity: 0.3; }
+}
+
+/* Entrance keyframes animate `opacity`/`scale` (individual property) so they compose with the
+   `transform`-based drift instead of overriding it. `from`-only keyframes settle on the element's own values. */
+@keyframes hero-glow-in {
+  from { opacity: 0; scale: 1.15; }
+}
+@keyframes hero-glow-drift {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to { transform: translate3d(-4%, 3%, 0) scale(1.06); }
+}
+@keyframes hero-pattern-in {
+  from { opacity: 0; scale: 1.08; }
+}
+@keyframes hero-arc-draw {
+  from { stroke-dashoffset: 1; }
+}
+@keyframes hero-arc-fade {
+  from { opacity: 0; }
+}
+@keyframes hero-arc-spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes hero-arc-pulse {
+  from { stroke-opacity: 1; }
+  to { stroke-opacity: 0.45; }
 }
 
 .anim-card {
@@ -152,6 +347,59 @@ h1, h2, h3, h4, h5 {
 
 .anim-btn:active {
   transform: translateY(0);
+}
+
+/* —— Scroll reveal (see components/Reveal.vue) ——
+   No state class = visible (SSR / no-JS). `--out` resets instantly while off-screen;
+   `--in` transitions back to the natural state, then the component drops back to no state. */
+.reveal {
+  --reveal-duration: 700ms;
+  --reveal-delay: 0ms;
+  --reveal-ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+.reveal--clip-up { --reveal-duration: 800ms; }
+.reveal--zoom-in,
+.reveal--zoom-out { --reveal-duration: 650ms; }
+
+.reveal--out {
+  opacity: 0;
+  transition: none;
+  will-change: opacity, transform;
+}
+
+.reveal--in {
+  transition:
+    opacity var(--reveal-duration) var(--reveal-ease) var(--reveal-delay),
+    transform var(--reveal-duration) var(--reveal-ease) var(--reveal-delay),
+    filter var(--reveal-duration) var(--reveal-ease) var(--reveal-delay),
+    clip-path var(--reveal-duration) var(--reveal-ease) var(--reveal-delay);
+  will-change: opacity, transform;
+}
+
+.reveal--out.reveal--fade-up { transform: translate3d(0, 24px, 0); }
+.reveal--out.reveal--fade-down { transform: translate3d(0, -20px, 0); }
+.reveal--out.reveal--fade-left { transform: translate3d(32px, 0, 0); }
+.reveal--out.reveal--fade-right { transform: translate3d(-32px, 0, 0); }
+.reveal--out.reveal--zoom-in { transform: scale(0.92); }
+.reveal--out.reveal--zoom-out { transform: scale(1.06); }
+
+.reveal--out.reveal--blur-in {
+  filter: blur(8px);
+  transform: translate3d(0, 10px, 0);
+}
+.reveal--in.reveal--blur-in { filter: blur(0); }
+
+.reveal--flip-up { transform-origin: 50% 100%; }
+.reveal--out.reveal--flip-up { transform: perspective(900px) rotateX(12deg) translate3d(0, 16px, 0); }
+.reveal--in.reveal--flip-up { transform: perspective(900px) rotateX(0deg) translate3d(0, 0, 0); }
+
+/* Clip the children, not the observed root: Chromium's IntersectionObserver honours the
+   target's own clip-path, so a fully clipped root reports ratio 0 and never reveals. */
+.reveal--out.reveal--clip-up { transform: translate3d(0, 16px, 0); }
+.reveal--out.reveal--clip-up > * { clip-path: inset(100% 0 0 0); }
+.reveal--in.reveal--clip-up > * {
+  clip-path: inset(0 0 0 0);
+  transition: clip-path var(--reveal-duration) var(--reveal-ease) var(--reveal-delay);
 }
 
 /* Brand logo motion */
@@ -228,96 +476,33 @@ h1, h2, h3, h4, h5 {
   animation: brand-logo-shimmer 0.9s ease-out;
 }
 
-/* —— Portafolio mega-menu / accordion —— */
-.portfolio-mega {
-  position: absolute;
-  left: 50%;
-  top: 100%;
-  width: min(36rem, calc(100vw - 2rem));
-  padding-top: 0.75rem;
-  transform: translateX(-50%);
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-  transition:
-    opacity 0.24s cubic-bezier(0.22, 1, 0.36, 1),
-    visibility 0.24s cubic-bezier(0.22, 1, 0.36, 1);
-  z-index: 60;
-}
-
-.portfolio-mega__panel {
-  transform: translateY(-0.5rem) scaleY(0.96);
-  transform-origin: top center;
-  opacity: 0;
-  transition:
-    opacity 0.26s cubic-bezier(0.22, 1, 0.36, 1),
-    transform 0.26s cubic-bezier(0.22, 1, 0.36, 1);
-  will-change: opacity, transform;
-}
-
-.portfolio-mega--open {
-  opacity: 1;
-  visibility: visible;
-  pointer-events: auto;
-}
-
-.portfolio-mega--open .portfolio-mega__panel {
-  opacity: 1;
-  transform: translateY(0) scaleY(1);
-}
-
-.portfolio-mega__item {
-  transition: background-color 0.2s ease;
-}
-
-.portfolio-accordion {
-  display: grid;
-  grid-template-rows: 0fr;
-  transition: grid-template-rows 0.28s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.portfolio-accordion--open {
-  grid-template-rows: 1fr;
-}
-
-.portfolio-accordion__inner {
-  overflow: hidden;
-  min-height: 0;
-}
-
 @media (prefers-reduced-motion: reduce) {
   .page-enter,
   .hero-anim > *,
   .hero-anim-panel,
+  .hero-backdrop__glow,
+  .hero-backdrop__pattern,
+  .hero-backdrop__arc,
+  .hero-backdrop__arc-spin,
   .brand-logo,
   .brand-logo::after,
   .brand-logo__img {
     animation: none !important;
   }
 
-  .reveal {
-    opacity: 1;
-    transform: none;
+  .reveal,
+  .reveal--out,
+  .reveal--in {
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+    clip-path: none !important;
     transition: none !important;
   }
 
-  .portfolio-mega,
-  .portfolio-mega__panel,
-  .portfolio-accordion {
+  .reveal--clip-up > * {
+    clip-path: none !important;
     transition: none !important;
-  }
-
-  .portfolio-mega:not(.portfolio-mega--open) {
-    display: none;
-  }
-
-  .portfolio-mega__panel {
-    opacity: 1;
-    transform: none;
-  }
-
-  .portfolio-accordion:not(.portfolio-accordion--open) {
-    display: none;
   }
 
   .anim-card:hover,

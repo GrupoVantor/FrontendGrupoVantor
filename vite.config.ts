@@ -4,6 +4,17 @@ import tailwindcss from '@tailwindcss/vite'
 import path from 'node:path'
 
 import siteConfiguration from './.figma/make/site.json' with { type: 'json' }
+import {
+  absoluteUrl,
+  buildSitemapXml,
+  buildStructuredData,
+  canonicalUrl,
+  DEFAULT_SOCIAL_IMAGE_PATH,
+  LOGO_PATH,
+  routeSeo,
+  SITE_NAME,
+  SITE_URL,
+} from './src/seo/site.ts'
 
 // Vite config — https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
@@ -81,13 +92,17 @@ function figmaSiteConfiguration(config: FigmaSiteConfiguration): Plugin {
     return html.replace(`<!-- ${slotName} -->`, content)
   }
 
-  const title =
-    config.title ?? 'Grupo Vantor S.A.S. | Soluciones financieras, inmobiliarias, logísticas y corporativas'
-  const description =
-    config.description ??
-    'Grupo Vantor S.A.S. ofrece factoring, créditos con garantía hipotecaria y prendaria, soluciones inmobiliarias, logística de carga consolidada para mipymes y outsourcing contable, tributario y de nómina en Colombia.'
-  const favicon = config.icons?.icon ?? ''
-  const socialImage = config.openGraph?.image ?? ''
+  // Route-level SEO (src/seo/site.ts) is the source of truth; prerender swaps these per page.
+  const homeSeo = routeSeo[0]
+  const title = homeSeo.title
+  const description = homeSeo.description
+  const favicon = config.icons?.icon ?? LOGO_PATH
+  const customSocialImage = config.openGraph?.image
+  const socialImage = customSocialImage ?? absoluteUrl(DEFAULT_SOCIAL_IMAGE_PATH)
+  // The fallback logo is portrait; large cards would crop it badly.
+  const twitterCard = customSocialImage ? 'summary_large_image' : 'summary'
+  const structuredData = JSON.stringify(buildStructuredData()).replace(/</g, '\\u003c')
+  let isSsrBuild = false
   const language = sanitizeHtmlValue(config.language) || 'es'
   const robotsIndex = config.robots?.index !== false
   const robotsFollow = config.robots?.follow ?? robotsIndex
@@ -97,27 +112,48 @@ function figmaSiteConfiguration(config: FigmaSiteConfiguration): Plugin {
   const headEnd = config.customScripts?.headEnd ?? ''
   const bodyStart = config.customScripts?.bodyStart ?? ''
   const bodyEnd = config.customScripts?.bodyEnd ?? ''
-  // Always emitted: the Netlify SPA fallback would otherwise serve index.html at /robots.txt.
-  const robotsTxt = robotsIndex ? 'User-agent: *\nAllow: /\n' : 'User-agent: *\nDisallow: /\n'
+  // Always emitted so /robots.txt never falls through to Netlify's 404 page.
+  const robotsTxt = robotsIndex
+    ? `User-agent: *\nAllow: /\n\nSitemap: ${SITE_URL}/sitemap.xml\n`
+    : 'User-agent: *\nDisallow: /\n'
+  const sitemapXml = () => buildSitemapXml(new Date().toISOString().slice(0, 10))
 
   return {
     name: 'figma-site-configuration',
+    configResolved(resolved) {
+      isSsrBuild = Boolean(resolved.build.ssr)
+    },
     configureServer(server) {
       server.middlewares.use((req, res, next) => {
-        if (!robotsTxt || req.url?.split('?')[0] !== '/robots.txt') return next()
-
-        res.setHeader('Content-Type', 'text/plain; charset=utf-8')
-        res.end(robotsTxt)
+        const pathname = req.url?.split('?')[0]
+        if (pathname === '/robots.txt') {
+          res.setHeader('Content-Type', 'text/plain; charset=utf-8')
+          res.end(robotsTxt)
+          return
+        }
+        if (pathname === '/sitemap.xml' && robotsIndex) {
+          res.setHeader('Content-Type', 'application/xml; charset=utf-8')
+          res.end(sitemapXml())
+          return
+        }
+        next()
       })
     },
     generateBundle() {
-      if (!robotsTxt) return
+      if (isSsrBuild) return
 
       this.emitFile({
         type: 'asset',
         fileName: 'robots.txt',
         source: robotsTxt,
       })
+      if (robotsIndex) {
+        this.emitFile({
+          type: 'asset',
+          fileName: 'sitemap.xml',
+          source: sitemapXml(),
+        })
+      }
     },
     transformIndexHtml: {
       order: 'pre',
@@ -135,9 +171,14 @@ function figmaSiteConfiguration(config: FigmaSiteConfiguration): Plugin {
           tags.push({ tag: 'meta', attrs: { name: 'description', content: description }, injectTo: 'head' })
         }
         tags.push({ tag: 'meta', attrs: { name: 'robots', content: robotsContent }, injectTo: 'head' })
+        tags.push({ tag: 'link', attrs: { rel: 'canonical', href: canonicalUrl(homeSeo.path) }, injectTo: 'head' })
         if (favicon) {
-          tags.push({ tag: 'link', attrs: { rel: 'icon', href: favicon }, injectTo: 'head' })
+          tags.push(
+            { tag: 'link', attrs: { rel: 'icon', type: 'image/png', href: favicon }, injectTo: 'head' },
+            { tag: 'link', attrs: { rel: 'apple-touch-icon', href: favicon }, injectTo: 'head' },
+          )
         }
+        tags.push({ tag: 'meta', attrs: { name: 'theme-color', content: '#0D1F3C' }, injectTo: 'head' })
         if (title) {
           tags.push(
             { tag: 'meta', attrs: { property: 'og:title', content: title }, injectTo: 'head' },
@@ -152,15 +193,24 @@ function figmaSiteConfiguration(config: FigmaSiteConfiguration): Plugin {
         }
         tags.push(
           { tag: 'meta', attrs: { property: 'og:type', content: 'website' }, injectTo: 'head' },
+          { tag: 'meta', attrs: { property: 'og:site_name', content: SITE_NAME }, injectTo: 'head' },
+          { tag: 'meta', attrs: { property: 'og:url', content: canonicalUrl(homeSeo.path) }, injectTo: 'head' },
           { tag: 'meta', attrs: { property: 'og:locale', content: language === 'es' ? 'es_CO' : language }, injectTo: 'head' },
         )
         if (socialImage) {
           tags.push(
             { tag: 'meta', attrs: { property: 'og:image', content: socialImage }, injectTo: 'head' },
-            { tag: 'meta', attrs: { name: 'twitter:card', content: 'summary_large_image' }, injectTo: 'head' },
+            { tag: 'meta', attrs: { property: 'og:image:alt', content: 'Logo de Grupo Vantor S.A.S.' }, injectTo: 'head' },
+            { tag: 'meta', attrs: { name: 'twitter:card', content: twitterCard }, injectTo: 'head' },
             { tag: 'meta', attrs: { name: 'twitter:image', content: socialImage }, injectTo: 'head' },
           )
         }
+        tags.push({
+          tag: 'script',
+          attrs: { type: 'application/ld+json' },
+          children: structuredData,
+          injectTo: 'head',
+        })
 
         if (googleAnalyticsId) {
           tags.push(

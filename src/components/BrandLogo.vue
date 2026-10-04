@@ -1,8 +1,10 @@
 <script setup lang="ts">
+import type { HTMLAttributes } from 'vue'
+
 withDefaults(
   defineProps<{
-    variant?: 'dark' | 'light'
-    class?: string
+    variant?: 'dark' | 'light' | 'mark'
+    class?: HTMLAttributes['class']
     alt?: string
   }>(),
   {
@@ -15,6 +17,7 @@ withDefaults(
 const sources = {
   dark: '/logo_con_letras.png',
   light: '/logo_con_letras_claro.png',
+  mark: '/logo-v.png',
 } as const
 </script>
 

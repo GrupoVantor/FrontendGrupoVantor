@@ -5,7 +5,5 @@
 [build.environment]
   NODE_VERSION = "22"
 
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
+# No SPA fallback: every route is prerendered to dist/<route>/index.html, so unknown
+# paths get Netlify's built-in dist/404.html response with a real 404 status.

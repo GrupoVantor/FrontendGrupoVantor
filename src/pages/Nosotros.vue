@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
+import HeroBackdrop from '../components/HeroBackdrop.vue'
 import Reveal from '../components/Reveal.vue'
 
 const router = useRouter()
@@ -36,20 +37,11 @@ function go(name: string) {
 
 <template>
   <div>
-    <section class="bg-[#0D1F3C] py-20 relative overflow-hidden">
-      <div class="absolute inset-0 opacity-8">
-        <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <pattern id="grid-nosotros" width="60" height="60" patternUnits="userSpaceOnUse">
-              <path d="M 60 0 L 0 0 0 60" fill="none" stroke="white" stroke-width="0.5" />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#grid-nosotros)" />
-        </svg>
-      </div>
-      <div class="relative max-w-7xl mx-auto px-6 hero-anim">
+    <section class="bg-navy py-14 sm:py-20 relative overflow-hidden">
+      <HeroBackdrop />
+      <div class="relative max-w-7xl mx-auto px-6 hero-anim hero-anim--clip">
         <div class="text-white/40 text-xs mb-4">
-          <button type="button" class="hover:text-white transition-colors" @click="go('inicio')">Inicio</button>
+          <RouterLink :to="{ name: 'inicio' }" class="hover:text-white transition-colors">Inicio</RouterLink>
           <span class="mx-2">/</span>
           <span class="text-white font-medium">Nosotros</span>
         </div>
@@ -61,39 +53,42 @@ function go(name: string) {
     </section>
 
     <section class="py-24 bg-white">
-      <div class="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-16 items-center">
-        <div class="relative rounded-lg overflow-hidden bg-[#0D1F3C] aspect-[4/3]">
+      <div class="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+        <Reveal variant="zoom-out" class="relative rounded-lg overflow-hidden bg-navy aspect-4/3 sm:aspect-video lg:aspect-4/3">
           <img
             src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&h=600&fit=crop&auto=format"
             alt="Oficina corporativa moderna"
+            loading="lazy"
+            width="800"
+            height="600"
             class="w-full h-full object-cover opacity-60"
           />
-          <div class="absolute inset-0 bg-gradient-to-t from-[#0D1F3C]/60 to-transparent" />
-        </div>
-        <div>
-          <span class="text-[#B8973A] text-xs font-bold tracking-[0.18em] uppercase">Nuestra Misión</span>
-          <h2 class="text-3xl font-bold text-[#0D1F3C] mt-3 mb-6" style="font-family: Manrope, sans-serif">
+          <div class="absolute inset-0 bg-linear-to-t from-navy/60 to-transparent" />
+        </Reveal>
+        <Reveal variant="fade-left" :delay="1">
+          <span class="text-gold text-xs font-bold tracking-[0.18em] uppercase">Nuestra Misión</span>
+          <h2 class="text-3xl font-bold text-navy mt-3 mb-6" style="font-family: Manrope, sans-serif">
             Facilitar liquidez, patrimonio y operación bajo un mismo grupo
           </h2>
-          <p class="text-[#6B7A90] text-base leading-relaxed">
+          <p class="text-muted text-base leading-relaxed">
             Conectamos capital, activos e infraestructura logística para que nuestros clientes tomen mejores decisiones financieras, patrimoniales y operativas, con respaldo legal y asesoría especializada en cada etapa.
           </p>
-        </div>
+        </Reveal>
       </div>
     </section>
 
-    <section class="py-20 bg-[#F4F6F9]">
+    <section class="py-20 bg-surface">
       <div class="max-w-7xl mx-auto px-6">
-        <div class="text-center mb-14">
-          <span class="text-[#B8973A] text-xs font-bold tracking-[0.18em] uppercase">Nuestros Valores</span>
-          <h2 class="text-3xl font-bold text-[#0D1F3C] mt-3" style="font-family: Manrope, sans-serif">
+        <Reveal variant="blur-in" class="text-center mb-14">
+          <span class="text-gold text-xs font-bold tracking-[0.18em] uppercase">Nuestros Valores</span>
+          <h2 class="text-3xl font-bold text-navy mt-3" style="font-family: Manrope, sans-serif">
             Los principios que guían cada operación
           </h2>
-        </div>
+        </Reveal>
         <div class="grid md:grid-cols-3 gap-8">
-          <Reveal v-for="({ title, desc, icon }, i) in values" :key="title" :delay="i">
-            <div class="anim-card bg-white rounded-lg border border-[#E0E6EF] p-8 hover:shadow-md transition-shadow h-full">
-              <div class="w-12 h-12 rounded-lg bg-[#0D1F3C] text-white flex items-center justify-center mb-5">
+          <Reveal v-for="({ title, desc, icon }, i) in values" :key="title" variant="flip-up" :delay="i + 1">
+            <div class="anim-card bg-white rounded-lg border border-border p-8 hover:shadow-md transition-shadow h-full">
+              <div class="w-12 h-12 rounded-lg bg-navy text-white flex items-center justify-center mb-5">
                 <svg
                   v-if="icon === 'shield'"
                   viewBox="0 0 24 24"
@@ -127,17 +122,17 @@ function go(name: string) {
                   <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" stroke-linecap="round" stroke-linejoin="round" />
                 </svg>
               </div>
-              <h3 class="text-[#0D1F3C] font-bold text-lg mb-3" style="font-family: Manrope, sans-serif">{{ title }}</h3>
-              <p class="text-[#6B7A90] text-sm leading-relaxed">{{ desc }}</p>
+              <h3 class="text-navy font-bold text-lg mb-3" style="font-family: Manrope, sans-serif">{{ title }}</h3>
+              <p class="text-muted text-sm leading-relaxed">{{ desc }}</p>
             </div>
           </Reveal>
         </div>
       </div>
     </section>
 
-    <section class="bg-[#0D1F3C] py-16">
+    <section class="bg-navy py-16">
       <div class="max-w-7xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-        <Reveal v-for="({ n, l }, i) in stats" :key="l" :delay="i">
+        <Reveal v-for="({ n, l }, i) in stats" :key="l" variant="zoom-in" :delay="i">
           <div class="text-4xl font-bold text-white mb-2" style="font-family: Manrope, sans-serif">{{ n }}</div>
           <div class="text-white/50 text-sm">{{ l }}</div>
         </Reveal>
@@ -145,19 +140,19 @@ function go(name: string) {
     </section>
 
     <section class="py-20 bg-white text-center">
-      <div class="max-w-2xl mx-auto px-6">
-        <h2 class="text-3xl font-bold text-[#0D1F3C] mb-4" style="font-family: Manrope, sans-serif">
+      <Reveal class="max-w-2xl mx-auto px-6">
+        <h2 class="text-3xl font-bold text-navy mb-4" style="font-family: Manrope, sans-serif">
           Conoce cómo podemos acompañarte
         </h2>
-        <p class="text-[#6B7A90] mb-8">Agenda una asesoría inicial sin costo con nuestro equipo.</p>
+        <p class="text-muted mb-8">Agenda una asesoría inicial sin costo con nuestro equipo.</p>
         <button
           type="button"
-          class="anim-btn bg-[#0D1F3C] hover:bg-[#162D55] text-white font-semibold px-8 py-4 rounded transition-colors"
+          class="anim-btn bg-navy hover:bg-navy-mid text-white font-semibold px-8 py-4 rounded transition-colors"
           @click="go('contacto')"
         >
           Contactar al Equipo
         </button>
-      </div>
+      </Reveal>
     </section>
   </div>
 </template>
