@@ -1,8 +1,7 @@
 {
-  "description": "This web application offers a user-friendly interface for managing and displaying information, tailored for efficient data organization and accessibility.",
-  "robots": {
-    "index": false
-  },
+  "title": "Grupo Vantor S.A.S.",
+  "description": "Grupo Vantor S.A.S., en Bogot\u00e1, ofrece servicios financieros, inmobiliarios, log\u00edsticos y de comercio exterior, y corporativos para empresas y personas.",
+  "language": "es",
   "accessibility": {
     "addBypassLinks": false,
     "ignoreReducedMotion": false
